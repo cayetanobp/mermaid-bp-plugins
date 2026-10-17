@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile, access, cp, mkdtemp, rm, appendFile } from 'node:fs/promises';
+import { readFile, access, cp, mkdtemp, rm, appendFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -59,6 +59,29 @@ test('package verification rejects private core imports in any built JavaScript 
 
     assert.notEqual(result.status, 0, 'the package verifier should reject the injected private import');
     assert.match(result.stderr, /bookstack-viewer\.js.*private core import/i);
+  } finally {
+    await rm(fixture, { recursive: true, force: true });
+  }
+});
+
+test('package verification rejects a valid manifest with an incompatible API version before installation', async () => {
+  const packageDirectory = new URL('../../dist/plugins/bookstack/', import.meta.url);
+  const fixture = await mkdtemp(join(tmpdir(), 'mermaid-bookstack-package-'));
+  try {
+    const fixturePackage = join(fixture, 'bookstack');
+    await cp(packageDirectory, fixturePackage, { recursive: true });
+    const manifestPath = join(fixturePackage, 'plugin.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+    manifest.apiVersion = 2;
+    await writeFile(manifestPath, JSON.stringify(manifest));
+
+    const result = spawnSync(process.execPath, [
+      resolve('scripts/verify-plugin-package.mjs'),
+      fixturePackage,
+    ], { encoding: 'utf8' });
+
+    assert.notEqual(result.status, 0, 'the built package verifier should reject an unsupported API version');
+    assert.match(result.stderr, /must target public API v1/);
   } finally {
     await rm(fixture, { recursive: true, force: true });
   }

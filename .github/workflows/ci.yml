@@ -35,6 +35,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - name: Reject an incompatible or private-import package before installation
+        run: node scripts/verify-plugin-package.mjs dist/plugins/bookstack
       - name: Build a clean core checkout
         id: core
         uses: cayetanobp/mermaid-bp/.github/actions/build-clean-core@9786567860127616520273b1027db7445ee5f375
