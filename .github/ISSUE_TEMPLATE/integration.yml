@@ -1,0 +1,29 @@
+name: Integración o plugin
+description: Proponer o informar sobre un plugin de Mermaid BP
+title: "[Plugin]: "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: "Las integraciones se gestionan en `cayetanobp/mermaid-bp-plugins`. Para funciones genéricas del editor, abre el issue en `cayetanobp/mermaid-bp`."
+  - type: input
+    id: integration
+    attributes:
+      label: Aplicación o servicio
+      description: ¿Qué integración o plugin está relacionado?
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema o necesidad
+      description: Explica qué quieres hacer y qué resultado esperas.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Entorno y reproducción
+      description: Incluye versiones, pasos, mensajes de error o ejemplos pertinentes.
+    validations:
+      required: false

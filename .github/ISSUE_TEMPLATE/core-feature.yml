@@ -1,0 +1,29 @@
+name: Función del núcleo
+description: Proponer comportamiento genérico del editor o de su API
+title: "[Core]: "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: "Las funciones genéricas del editor, el contrato de plugins y el comportamiento compartido se proponen en `cayetanobp/mermaid-bp`. Las integraciones específicas van en `cayetanobp/mermaid-bp-plugins`."
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema
+      description: Describe la necesidad de carácter general.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamiento esperado
+      description: Indica qué debería poder hacer el editor.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto adicional
+      description: Añade ejemplos, casos de uso o detalles de compatibilidad.
+    validations:
+      required: false
