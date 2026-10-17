@@ -1,5 +1,9 @@
 import assert from 'node:assert/strict';
-import { readFile, access } from 'node:fs/promises';
+import { readFile, access, cp, mkdtemp, rm, appendFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 
 const root = new URL('../', import.meta.url);
@@ -33,6 +37,29 @@ test('the built plugin is a self-contained API v1 package', async () => {
     await access(new URL(file, output));
   }
 
-  const runtime = await readFile(new URL('index.js', output), 'utf8');
-  assert.doesNotMatch(runtime, /(?:\.\.\/)+src\/|(?:mermaid-bp|@mermaid-bp)\/src\//);
+  const result = spawnSync(process.execPath, [
+    resolve('scripts/verify-plugin-package.mjs'),
+    fileURLToPath(output),
+  ], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr || 'the built package should pass verification');
+});
+
+test('package verification rejects private core imports in any built JavaScript output', async () => {
+  const packageDirectory = new URL('../../dist/plugins/bookstack/', import.meta.url);
+  const fixture = await mkdtemp(join(tmpdir(), 'mermaid-bookstack-package-'));
+  try {
+    const fixturePackage = join(fixture, 'bookstack');
+    await cp(packageDirectory, fixturePackage, { recursive: true });
+    await appendFile(join(fixturePackage, 'bookstack-viewer.js'), '\nimport {privateThing} from "../../src/private-module.js";\n');
+
+    const result = spawnSync(process.execPath, [
+      resolve('scripts/verify-plugin-package.mjs'),
+      fixturePackage,
+    ], { encoding: 'utf8' });
+
+    assert.notEqual(result.status, 0, 'the package verifier should reject the injected private import');
+    assert.match(result.stderr, /bookstack-viewer\.js.*private core import/i);
+  } finally {
+    await rm(fixture, { recursive: true, force: true });
+  }
 });
