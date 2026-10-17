@@ -20,3 +20,19 @@ test('the installable package has its own dependency and legal notices', async (
     await access(new URL(`../${file}`, import.meta.url));
   }
 });
+
+test('the built plugin is a self-contained API v1 package', async () => {
+  const output = new URL('../../dist/plugins/bookstack/', import.meta.url);
+  const manifest = JSON.parse(await readFile(new URL('plugin.json', output), 'utf8'));
+  assert.equal(manifest.id, 'bookstack');
+  assert.equal(manifest.apiVersion, 1);
+  assert.equal(manifest.build.entries.bookstack, 'bookstack.html');
+  assert.equal(manifest.build.outputs['bookstack-viewer'], 'bookstack-viewer.js');
+
+  for (const file of ['index.js', 'bookstack.html', 'bookstack-viewer.js', 'bookstack-header.html', 'LICENSE', 'NOTICE.md', 'THIRD_PARTY_NOTICES.md']) {
+    await access(new URL(file, output));
+  }
+
+  const runtime = await readFile(new URL('index.js', output), 'utf8');
+  assert.doesNotMatch(runtime, /(?:\.\.\/)+src\/|(?:mermaid-bp|@mermaid-bp)\/src\//);
+});

@@ -58,6 +58,10 @@ Los comandos disponibles para verificaciones automatizadas son `npm test` y `npm
 
 Antes de abrir una propuesta, identifica si el cambio pertenece a una integración concreta o al editor genérico. Sigue [CONTRIBUTING.md](CONTRIBUTING.md) y usa las plantillas de [.github/ISSUE_TEMPLATE](.github/ISSUE_TEMPLATE/) o [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md). Las integraciones se proponen en [cayetanobp/mermaid-bp-plugins](https://github.com/cayetanobp/mermaid-bp-plugins); las funciones genéricas del editor, en [cayetanobp/mermaid-bp](https://github.com/cayetanobp/mermaid-bp).
 
+## CI
+
+Las PR requieren `Plugin CI / Plugin package` y `Plugin CI / Clean core compatibility`. El segundo trabajo usa la acción compartida del núcleo (fijada a un commit), construye una distribución limpia, instala el paquete generado y comprueba su activación, vista previa, retirada y aislamiento de manifiestos inválidos en el navegador. Mientras ambos repositorios sean privados, GitHub Actions del núcleo permite el acceso entre repositorios privados del mismo propietario; al publicar ambos, el flujo puede ejecutarse también desde forks.
+
 ## Licencia
 
 El código original se distribuye bajo GNU AGPL versión 3 únicamente (`AGPL-3.0-only`). Consulta `LICENSE` y `NOTICE.md`. Las dependencias y recursos de terceros conservan sus licencias, indicadas en los avisos del paquete correspondiente.
