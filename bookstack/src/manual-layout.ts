@@ -1,6 +1,7 @@
 import {sameEdgeLabel} from './edge-label';
 import {mermaidSourceId} from './mermaid-id';
-import { edgePathMap, type Flow } from './flow';
+import type { Flow } from './flow';
+import { edgePathMap } from './svg-edge-path-map';
 import type { Geometry, Point } from './layout';
 import type { Positions } from './positions';
 import { connectionKey, type Connections } from './connections';

@@ -27,7 +27,7 @@ const idPattern = /^[A-Za-z_][A-Za-z0-9_]*/;
 const begin = '%% mbp-layout:start';
 const end = '%% mbp-layout:end';
 const pairs: Array<[string, string, Shape]> = [['((', '))', 'circle'], ['([', '])', 'stadium'], ['[', ']', 'rect'], ['(', ')', 'round'], ['{', '}', 'diamond']];
-const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+const jsonEqual = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 const snapshot = (flow: Flow): Snapshot => ({ direction: flow.direction, nodes: flow.nodes, edges: flow.edges, comments: flow.comments, constraints: flow.constraints, groups:flow.groups ?? [] });
 
 export function encodeLabel(label: string): string {
@@ -200,11 +200,11 @@ function serializeGroups(flow:Flow):string {
 
 export function serializeFlow(flow: Flow): string {
   const source = flow.source;
-  if ((!source && flow.groups?.length) || (source && (!same(flow.groups ?? [],source.original.groups ?? []) || flow.nodes.some(n=>(n.group ?? '')!==(source.original.nodes.find(old=>old.id===n.id)?.group ?? '')))))return serializeGroups(flow);
+  if ((!source && flow.groups?.length) || (source && (!jsonEqual(flow.groups ?? [],source.original.groups ?? []) || flow.nodes.some(n=>(n.group ?? '')!==(source.original.nodes.find(old=>old.id===n.id)?.group ?? '')))))return serializeGroups(flow);
   if (!source) {
     return [...flow.comments, `flowchart ${flow.direction}`, ...flow.nodes.map(n => `    ${nodeText(n)}`), ...flow.edges.map(e => `    ${edgeText(e)}`), ...constraintLines(flow), ''].join('\n');
   }
-  if (same(snapshot(flow), source.original)) return source.text;
+  if (jsonEqual(snapshot(flow), source.original)) return source.text;
   const current = new Map(flow.nodes.map(n => [n.id, n]));
   const previous = new Map(source.original.nodes.map(n => [n.id, n]));
   const edges = new Map(flow.edges.filter(e => e.key).map(e => [e.key!, e]));
@@ -215,7 +215,7 @@ export function serializeFlow(flow: Flow): string {
   for (const line of source.lines) for (const ref of line.refs ?? []) if (!firstRef.has(ref.id)) firstRef.set(ref.id, ref);
   const pure = source.lines.filter(line => line.kind === 'content' && !line.edges?.length && line.refs?.length === 1);
   const pureById = new Map(pure.map(line => [line.refs![0].id, line]));
-  const reordered = !same(flow.nodes.filter(n => previous.has(n.id)).map(n => n.id), source.original.nodes.filter(n => current.has(n.id)).map(n => n.id));
+  const reordered = !jsonEqual(flow.nodes.filter(n => previous.has(n.id)).map(n => n.id), source.original.nodes.filter(n => current.has(n.id)).map(n => n.id));
   const queues = new Map<string, SourceLine[]>();
   if (reordered) {
     for (const n of flow.nodes) {
@@ -242,7 +242,7 @@ export function serializeFlow(flow: Flow): string {
     }
     if (line.kind !== 'content') { out.push(line.raw); continue; }
     const refs = line.refs!, keys = line.edges!;
-    const edgeChanged = keys.some(key => !same(edges.get(key), oldEdges.get(key)));
+    const edgeChanged = keys.some(key => !jsonEqual(edges.get(key), oldEdges.get(key)));
     const hasDeletedNode = refs.some(ref => deleted.has(ref.id));
     const indent = line.raw.match(/^\s*/)?.[0] ?? '';
     if (edgeChanged || hasDeletedNode) {
@@ -258,7 +258,7 @@ export function serializeFlow(flow: Flow): string {
     let raw = line.raw;
     for (const ref of [...refs].reverse()) {
       const node = current.get(ref.id)!;
-      if (!same(node, previous.get(ref.id)) && (ref.explicit || (!explicitIds.has(ref.id) && firstRef.get(ref.id) === ref))) {
+      if (!jsonEqual(node, previous.get(ref.id)) && (ref.explicit || (!explicitIds.has(ref.id) && firstRef.get(ref.id) === ref))) {
         raw = raw.slice(0, ref.start) + nodeText(node) + raw.slice(ref.end);
       }
     }
@@ -282,22 +282,6 @@ export function removeNode(flow: Flow, id: string): void {
   flow.nodes = flow.nodes.filter(n => n.id !== id);
   flow.edges = flow.edges.filter(e => e.from !== id && e.to !== id);
   flow.constraints = flow.constraints.filter(c => c.from !== id && c.to !== id);
-}
-/** Relaciona cada trazo con su conexión, incluidos los bucles de uno o tres trazos. */
-export function edgePathMap(flow: Flow): Map<string, number> {
-  const paths = new Map<string, number>(), counts = new Map<string, number>();
-  const ambiguous = new Set<string>();
-  const add = (id: string, index: number) => { if (paths.has(id)) ambiguous.add(id); else paths.set(id, index); };
-  flow.edges.forEach((edge, index) => {
-    const pair = `${edge.from}_${edge.to}`, count = counts.get(pair) ?? 0;
-    add(`L_${pair}_${count === 0 ? 0 : count + 1}`, index); counts.set(pair, count + 1);
-    // Mermaid reciente usa un solo trazo para bucles; conservar también los tres de versiones anteriores.
-    if (edge.from === edge.to) {
-      for (const suffix of ['1', 'mid', '2']) add(`${edge.from}-cyclic-special-${suffix}`, index);
-    }
-  });
-  for (const id of ambiguous) paths.delete(id);
-  return paths;
 }
 export const example = `flowchart TD
     Inicio(["Inicio"])
