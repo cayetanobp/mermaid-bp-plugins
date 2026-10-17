@@ -41,6 +41,9 @@ test('BookStack uses API v1 in a clean Mermaid BP distribution',async({page})=>{
   await page.goto(url);await expect(page.locator('#render-state')).toHaveText('Actualizado');await expect(page.locator('#plugin-actions')).toBeEmpty();
   await cp(packageDistribution,join(plugins,'bookstack'),{recursive:true});
   await mkdir(join(plugins,'ci-invalid-manifest'));await writeFile(join(plugins,'ci-invalid-manifest','plugin.json'),'not json');
+  await mkdir(join(plugins,'ci-incompatible-api'));
+  await writeFile(join(plugins,'ci-incompatible-api','plugin.json'),JSON.stringify({id:'ci-incompatible-api',name:'API incompatible',description:'Fixture de API futura',version:'1.0.0',apiVersion:2,enabledByDefault:false}));
+  await writeFile(join(plugins,'ci-incompatible-api','index.js'),'export default {setup(){}};');
   await page.reload();await expect(page.locator('#render-state')).toHaveText('Actualizado');
   const previewAction=page.locator('#plugin-bookstack-preview');await expect(previewAction).toHaveCount(1);
   const previewPromise=page.waitForEvent('popup');await command(page,'plugin-bookstack-preview');const preview=await previewPromise;
@@ -48,6 +51,7 @@ test('BookStack uses API v1 in a clean Mermaid BP distribution',async({page})=>{
   await expect(preview.locator('#check-state')).toContainText('Renderizado con Mermaid');
   await command(page,'plugins-button');
   await expect(page.locator('#plugin-list')).toContainText('No se ha podido cargar la extensión ci-invalid-manifest');
+  await expect(page.locator('[data-plugin-status="ci-incompatible-api"]')).toContainText('Versión de API incompatible');
   await page.locator('#plugins-close').click();
   await rm(join(plugins,'bookstack'),{recursive:true,force:true});await page.reload();
   await expect(page.locator('#render-state')).toHaveText('Actualizado');await expect(page.locator('#plugin-actions')).toBeEmpty();
