@@ -8,6 +8,10 @@ Repositorio de plugins oficiales para Mermaid BP. Cada plugin se mantiene como u
 2. Copia la carpeta dentro de `plugins/` de la distribución web de Mermaid BP. Por ejemplo, el paquete BookStack va en `dist/plugins/bookstack/`.
 3. Recarga Mermaid BP y abre **Extensiones** para activarlo o desactivarlo.
 
+La release de BookStack para Mermaid BP 1.0.0-beta.1 incluye un ZIP instalable, SHA256 y un manifiesto de compatibilidad. Descarga `bookstack-v1.0.0.zip` desde [Releases](https://github.com/cayetanobp/mermaid-bp-plugins/releases/tag/bookstack-v1.0.0), verifica el archivo `.sha256` y copia la carpeta `bookstack/` extraída a `plugins/`. El paquete declara `apiVersion: 1`; es compatible con la beta del núcleo que también usa API v1. La guía detallada está en [BookStack](bookstack/README.md).
+
+Para publicar, la release beta enlazada del core ya debe existir y su repositorio debe ser público para que el workflow pueda verificarla mediante la API anónima de GitHub. Si el core sigue privado, la verificación falla y el workflow no publica el plugin.
+
 En una instalación web, la instalación, actualización y retirada de carpetas corresponde al administrador del servidor. La interfaz solo permite gestionar la activación de los plugins ya disponibles. Para retirarlo, el administrador elimina su carpeta y se recarga la aplicación. En escritorio, sigue la función de instalación de **Extensiones** disponible en esa versión.
 
 ## Estructura del repositorio

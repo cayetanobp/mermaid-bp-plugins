@@ -15,6 +15,8 @@ Desde la raíz de este repositorio, ejecuta `npm install` y `npm run build`. Cop
 
 Recarga Mermaid BP y activa **BookStack** en **Extensiones**. La vista previa sirve para comprobar el diagrama antes de publicarlo. Para retirar el plugin, elimina la carpeta `plugins/bookstack/` de la distribución y recarga.
 
+También puedes instalar la release lista para usar: descarga `bookstack-v1.0.0.zip` y `bookstack-v1.0.0.zip.sha256` desde [Releases](https://github.com/cayetanobp/mermaid-bp-plugins/releases/tag/bookstack-v1.0.0), comprueba el SHA256 y extrae la carpeta `bookstack/` bajo `plugins/` en la distribución de Mermaid BP. La release enlaza la beta compatible del núcleo y declara la compatibilidad mediante `apiVersion: 1`.
+
 ## Instalar el encabezado en BookStack
 
 La compilación produce `dist/plugins/bookstack/bookstack-header.html` y también copia el mismo archivo a `dist/bookstack-header.html`. Copia **todo el contenido** de `dist/plugins/bookstack/bookstack-header.html` y pégalo en el campo de HTML header global de la configuración de BookStack. Guarda la configuración y prueba una página con un bloque de código Mermaid.

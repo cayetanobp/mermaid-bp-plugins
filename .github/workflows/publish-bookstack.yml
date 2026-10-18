@@ -1,0 +1,102 @@
+name: Publicar plugin BookStack compatible
+
+on:
+  workflow_dispatch:
+    inputs:
+      core_beta_version:
+        description: Versión beta compatible de Mermaid BP (por ejemplo 1.0.0-beta.1)
+        required: true
+        type: string
+      confirmation:
+        description: Escribe PUBLICAR para autorizar la release del plugin
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: publish-bookstack-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - name: Validate release request and verified CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CORE_BETA_VERSION: ${{ inputs.core_beta_version }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          test "$GITHUB_REF" = refs/heads/main || { echo 'Publish only from main.'; exit 1; }
+          test "$CONFIRMATION" = PUBLICAR || { echo 'Missing exact PUBLICAR confirmation.'; exit 1; }
+          [[ "$CORE_BETA_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]] || { echo 'Expected a Mermaid BP beta version.'; exit 1; }
+          RUNS=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?branch=main&per_page=50")
+          RUN=$(jq -c --arg sha "$GITHUB_SHA" '[.workflow_runs[] | select(.head_sha == $sha and .conclusion == "success")] | sort_by(.run_number) | last // empty' <<< "$RUNS")
+          test -n "$RUN" || { echo 'Plugin CI must pass on the exact main commit being released.'; exit 1; }
+          CORE_RELEASE=$(curl --fail --silent --show-error "https://api.github.com/repos/cayetanobp/mermaid-bp/releases/tags/$CORE_BETA_VERSION") || { echo 'The core beta must be published and publicly readable before publishing the plugin.'; exit 1; }
+          jq -e --arg tag "$CORE_BETA_VERSION" '.tag_name == $tag and .draft == false and .prerelease == true' <<< "$CORE_RELEASE" >/dev/null || { echo 'The compatible core beta release must already be published.'; exit 1; }
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Verify and package the compatible plugin
+        env:
+          CORE_BETA_VERSION: ${{ inputs.core_beta_version }}
+        run: |
+          node scripts/verify-plugin-package.mjs dist/plugins/bookstack
+          python3 -m unittest tests/test_package_bookstack_release.py
+          python3 scripts/package_bookstack_release.py \
+            --package-dir dist/plugins/bookstack \
+            --output-dir release-assets \
+            --core-version "$CORE_BETA_VERSION" \
+            --core-release-url "https://github.com/cayetanobp/mermaid-bp/releases/tag/$CORE_BETA_VERSION"
+      - name: Publish without replacing remote content
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CORE_BETA_VERSION: ${{ inputs.core_beta_version }}
+        run: |
+          PLUGIN_VERSION=$(node -p "JSON.parse(require('node:fs').readFileSync('bookstack/plugin.json','utf8')).version")
+          TAG="bookstack-v$PLUGIN_VERSION"
+          TITLE="BookStack $PLUGIN_VERSION compatible con Mermaid BP $CORE_BETA_VERSION"
+          ASSET="bookstack-v$PLUGIN_VERSION.zip"
+          CHECKSUM="$ASSET.sha256"
+          METADATA="bookstack-v$PLUGIN_VERSION.release.json"
+          NOTES=$(mktemp)
+          cat > "$NOTES" <<'EOF'
+          Paquete BookStack para Mermaid BP @CORE_VERSION@. El manifiesto declara API pública v1, compatible con el núcleo beta.
+
+          ## Instalación en Mermaid BP
+          Descarga y extrae `@ASSET@`. Copia la carpeta completa `bookstack/` en `plugins/` de la distribución web de Mermaid BP. Consulta [la guía de instalación](https://github.com/cayetanobp/mermaid-bp-plugins/blob/main/bookstack/README.md).
+
+          ## Mermaid BP
+          [Descarga Mermaid BP @CORE_VERSION@](https://github.com/cayetanobp/mermaid-bp/releases/tag/@CORE_VERSION@).
+          EOF
+          sed -i "s/@ASSET@/$ASSET/g; s/@CORE_VERSION@/$CORE_BETA_VERSION/g" "$NOTES"
+          API="repos/$GITHUB_REPOSITORY"
+          RELEASE=$(gh api "$API/releases/tags/$TAG" 2>/dev/null || true)
+          if [ -n "$RELEASE" ]; then
+            jq -e --arg tag "$TAG" --arg title "$TITLE" '.tag_name == $tag and .name == $title and .draft == false and .prerelease == false' <<< "$RELEASE" >/dev/null || { echo 'Existing release does not match this plugin release.'; exit 1; }
+            EXPECTED=$(printf '%s\n' "$ASSET" "$CHECKSUM" "$METADATA" | sort)
+            ACTUAL=$(jq -r '.assets[].name' <<< "$RELEASE" | sort)
+            test "$ACTUAL" = "$EXPECTED" || { echo 'Existing plugin release has different assets; refusing to overwrite.'; exit 1; }
+            mkdir -p verify-assets
+            gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir verify-assets
+            cmp "release-assets/$ASSET" "verify-assets/$ASSET"
+            cmp "release-assets/$CHECKSUM" "verify-assets/$CHECKSUM"
+            cmp "release-assets/$METADATA" "verify-assets/$METADATA"
+            echo 'The identical plugin release already exists; no remote assets were changed.'
+            exit 0
+          fi
+          if gh api "$API/git/ref/tags/$TAG" >/dev/null 2>&1; then
+            echo 'The plugin tag exists without its release; refusing to reuse it.'
+            exit 1
+          fi
+          gh release create "$TAG" "release-assets/$ASSET" "release-assets/$CHECKSUM" "release-assets/$METADATA" \
+            --repo "$GITHUB_REPOSITORY" --title "$TITLE" --notes-file "$NOTES"
