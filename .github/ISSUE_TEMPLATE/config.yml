@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Proponer una función del núcleo
+    url: https://github.com/cayetanobp/mermaid-bp/issues/new
+    about: Usa el repositorio del editor para funciones genéricas, API y comportamiento compartido.
+  - name: Proponer una integración/plugin
+    url: https://github.com/cayetanobp/mermaid-bp-plugins/issues/new
+    about: Usa el repositorio de plugins para integraciones con aplicaciones o servicios.

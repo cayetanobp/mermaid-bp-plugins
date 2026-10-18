@@ -1,0 +1,49 @@
+name: Plugin CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  plugin-package:
+    name: Plugin package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+
+  core-compatibility:
+    name: Clean core compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Reject an incompatible or private-import package before installation
+        run: node scripts/verify-plugin-package.mjs dist/plugins/bookstack
+      - name: Build a clean core checkout
+        id: core
+        uses: cayetanobp/mermaid-bp/.github/actions/build-clean-core@9786567860127616520273b1027db7445ee5f375
+      - name: Install the package into the clean core distribution
+        run: node scripts/install-in-clean-core.mjs "${{ steps.core.outputs.distribution-path }}"
+      - run: npx playwright install --with-deps chromium
+      - name: Verify BookStack against the public API v1 in a real core distribution
+        env:
+          MERMAID_BP_CORE_DIST: ${{ steps.core.outputs.distribution-path }}
+        run: npx playwright test --config bookstack/playwright.core.config.ts
