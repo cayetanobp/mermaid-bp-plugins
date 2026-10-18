@@ -22,7 +22,9 @@ concurrency:
 
 jobs:
   publish:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    environment: release-signing
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -51,7 +53,7 @@ jobs:
           CORE_BETA_VERSION: ${{ inputs.core_beta_version }}
         run: |
           node scripts/verify-plugin-package.mjs dist/plugins/bookstack
-          python3 -m unittest tests/test_package_bookstack_release.py
+          python3 -m unittest plugins/bookstack/tests/test_package_bookstack_release.py
           python3 scripts/package_bookstack_release.py \
             --package-dir dist/plugins/bookstack \
             --output-dir release-assets \
@@ -62,7 +64,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           CORE_BETA_VERSION: ${{ inputs.core_beta_version }}
         run: |
-          PLUGIN_VERSION=$(node -p "JSON.parse(require('node:fs').readFileSync('bookstack/plugin.json','utf8')).version")
+          PLUGIN_VERSION=$(node -p "JSON.parse(require('node:fs').readFileSync('plugins/bookstack/plugin.json','utf8')).version")
           TAG="bookstack-v$PLUGIN_VERSION"
           TITLE="BookStack $PLUGIN_VERSION compatible con Mermaid BP $CORE_BETA_VERSION"
           ASSET="bookstack-v$PLUGIN_VERSION.zip"
@@ -73,7 +75,7 @@ jobs:
           Paquete BookStack para Mermaid BP @CORE_VERSION@. El manifiesto declara API pública v1, compatible con el núcleo beta.
 
           ## Instalación en Mermaid BP
-          Descarga y extrae `@ASSET@`. Copia la carpeta completa `bookstack/` en `plugins/` de la distribución web de Mermaid BP. Consulta [la guía de instalación](https://github.com/cayetanobp/mermaid-bp-plugins/blob/main/bookstack/README.md).
+          Descarga y extrae `@ASSET@`. Copia la carpeta completa `bookstack/` en `plugins/` de la distribución web de Mermaid BP. Consulta [la guía de instalación](https://github.com/cayetanobp/mermaid-bp-plugins/blob/main/plugins/bookstack/README.md).
 
           ## Mermaid BP
           [Descarga Mermaid BP @CORE_VERSION@](https://github.com/cayetanobp/mermaid-bp/releases/tag/@CORE_VERSION@).

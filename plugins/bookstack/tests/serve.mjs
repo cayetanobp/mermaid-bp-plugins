@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import {extname,resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-const root=resolve(fileURLToPath(new URL('../..',import.meta.url)),'dist');
+const root=resolve(fileURLToPath(new URL('../../..',import.meta.url)),'dist');
 const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.woff2':'font/woff2','.json':'application/json'};
 createServer(async(req,res)=>{
   try{

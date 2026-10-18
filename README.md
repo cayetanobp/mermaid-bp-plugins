@@ -8,7 +8,7 @@ Repositorio de plugins oficiales para Mermaid BP. Cada plugin se mantiene como u
 2. Copia la carpeta dentro de `plugins/` de la distribución web de Mermaid BP. Por ejemplo, el paquete BookStack va en `dist/plugins/bookstack/`.
 3. Recarga Mermaid BP y abre **Extensiones** para activarlo o desactivarlo.
 
-La release de BookStack para Mermaid BP 1.0.0-beta.1 incluye un ZIP instalable, SHA256 y un manifiesto de compatibilidad. Descarga `bookstack-v1.0.0.zip` desde [Releases](https://github.com/cayetanobp/mermaid-bp-plugins/releases/tag/bookstack-v1.0.0), verifica el archivo `.sha256` y copia la carpeta `bookstack/` extraída a `plugins/`. El paquete declara `apiVersion: 1`; es compatible con la beta del núcleo que también usa API v1. La guía detallada está en [BookStack](bookstack/README.md).
+La release de BookStack para Mermaid BP 1.0.0-beta.1 incluye un ZIP instalable, SHA256 y un manifiesto de compatibilidad. Descarga `bookstack-v1.0.0.zip` desde [Releases](https://github.com/cayetanobp/mermaid-bp-plugins/releases/tag/bookstack-v1.0.0), verifica el archivo `.sha256` y copia la carpeta `bookstack/` extraída a `plugins/`. El paquete declara `apiVersion: 1`; es compatible con la beta del núcleo que también usa API v1. La guía detallada está en [BookStack](plugins/bookstack/README.md).
 
 Para publicar, la release beta enlazada del core ya debe existir y su repositorio debe ser público para que el workflow pueda verificarla mediante la API anónima de GitHub. Si el core sigue privado, la verificación falla y el workflow no publica el plugin.
 
@@ -17,12 +17,12 @@ En una instalación web, la instalación, actualización y retirada de carpetas 
 ## Estructura del repositorio
 
 ```text
-bookstack/       Código, manifiesto, recursos, pruebas y guía del plugin BookStack
-scripts/         Herramientas compartidas de empaquetado y avisos
-dist/            Salida generada por la compilación (no se versiona)
+plugins/<nombre>/ Código, manifiesto, recursos, pruebas y guía de cada plugin
+scripts/          Herramientas compartidas de empaquetado y avisos
+dist/             Salida generada por la compilación (no se versiona)
 ```
 
-Cada carpeta de plugin incluye su propio `README.md`, `plugin.json`, punto de entrada y archivos necesarios para compilarlo. Los recursos de terceros y sus licencias se documentan junto al paquete.
+Cada carpeta de `plugins/` incluye su propio `README.md`, `plugin.json`, punto de entrada, pruebas y archivos necesarios para compilarlo. Las contribuciones centradas en plugins añaden o modifican sus carpetas. Los cambios de infraestructura compartida pueden actualizar los archivos de la raíz, `scripts/` y `.github/`. Una propuesta puede incluir varios plugins cuando el cambio abarque más de uno. Los recursos de terceros y sus licencias se documentan junto al paquete.
 
 ## API pública y compatibilidad
 
@@ -37,26 +37,26 @@ El contexto público ofrece:
 - `context.ui.addGuideStep(step)`: añade un paso a la guía y devuelve una función para retirarlo.
 - `context.ui.notify(message)`: muestra un aviso en el editor.
 
-Al desactivar un plugin, el editor limpia sus acciones, suscripciones y pasos, y ejecuta la limpieza que haya devuelto `setup`. La API organiza las aportaciones, pero no aísla el código: los plugins ejecutan código con los permisos de la aplicación. Consulta `bookstack/README.md` para los requisitos específicos de esa integración.
+Al desactivar un plugin, el editor limpia sus acciones, suscripciones y pasos, y ejecuta la limpieza que haya devuelto `setup`. La API organiza las aportaciones, pero no aísla el código: los plugins ejecutan código con los permisos de la aplicación. Consulta `plugins/bookstack/README.md` para los requisitos específicos de esa integración.
 
 ## Catálogo
 
 | Plugin | Finalidad | Guía |
 | --- | --- | --- |
-| BookStack | Vista previa y publicación de diagramas con posiciones y estilos Mermaid BP | [bookstack/README.md](bookstack/README.md) |
+| BookStack | Vista previa y publicación de diagramas con posiciones y estilos Mermaid BP | [plugins/bookstack/README.md](plugins/bookstack/README.md) |
 
 ## Desarrollo y compilación
 
 Requiere Node.js 22.18 o posterior.
 
 ```sh
-npm install
+npm ci
 npm run build
 ```
 
-El comando real `npm run build` construye el workspace BookStack. Genera el paquete completo en `dist/plugins/bookstack/` y los artefactos de compatibilidad `dist/bookstack-header.html`, `dist/bookstack.html` y `dist/bookstack-viewer.js`. La carpeta `dist/plugins/bookstack/` puede copiarse a otra distribución ya compilada; no es necesario reconstruir el editor.
+El comando `npm run build` construye cada plugin que declara ese script, incluido BookStack en `plugins/bookstack/`. Genera el paquete completo en `dist/plugins/bookstack/` y los artefactos de compatibilidad `dist/bookstack-header.html`, `dist/bookstack.html` y `dist/bookstack-viewer.js`. La carpeta `dist/plugins/bookstack/` puede copiarse a otra distribución ya compilada; no es necesario reconstruir el editor.
 
-Los comandos disponibles para verificaciones automatizadas son `npm test` y `npm run test:browser`; consulta los scripts de `package.json` antes de usarlos.
+`npm test` ejecuta las pruebas declaradas por cada workspace de plugin. `npm run test:browser` ejecuta los scripts de navegador declarados por los plugins que los necesitan. `npm run build` compila cada workspace que declara un script `build`.
 
 ## Contribuir
 

@@ -5,7 +5,7 @@ Gracias por ayudar a Mermaid BP. Antes de implementar un cambio, elige el reposi
 - **Integración con una aplicación o servicio**, como BookStack: contribuye en [cayetanobp/mermaid-bp-plugins](https://github.com/cayetanobp/mermaid-bp-plugins).
 - **Función genérica del editor**, contrato de plugins o comportamiento compartido del núcleo: contribuye en [cayetanobp/mermaid-bp](https://github.com/cayetanobp/mermaid-bp).
 
-Si una propuesta toca ambos repositorios, describe primero el contrato o cambio necesario en el núcleo y enlaza las propuestas relacionadas. Mantén cada plugin autónomo y usa únicamente la API pública documentada por el núcleo.
+Si una propuesta toca ambos repositorios, describe primero el contrato o cambio necesario en el núcleo y enlaza las propuestas relacionadas. En este repositorio, cada plugin vive en `plugins/<nombre>/` y mantiene allí su código, guía y pruebas en `tests/`. El `package.json` del plugin declara su script `test`; si requiere compilación o pruebas de navegador, declara también `build` o `test:browser`. Los comandos de la raíz ejecutan los scripts de los workspaces descubiertos en `plugins/`. Una propuesta puede modificar varios plugins cuando el cambio los abarque; los cambios de infraestructura compartida pueden modificar los archivos de la raíz, `scripts/` o `.github/`.
 
 ## Flujo de trabajo
 

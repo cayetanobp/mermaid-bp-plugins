@@ -3,9 +3,10 @@ import {cp,mkdir,mkdtemp,readdir,readFile,rm,stat,writeFile} from 'node:fs/promi
 import {createServer} from 'node:http';
 import {extname,join,relative,resolve,isAbsolute} from 'node:path';
 import {tmpdir} from 'node:os';
+import {fileURLToPath} from 'node:url';
 
 const coreDistribution=process.env.MERMAID_BP_CORE_DIST;
-const packageDistribution=resolve('dist/plugins/bookstack');
+const packageDistribution=resolve(fileURLToPath(new URL('../../../dist/plugins/bookstack/',import.meta.url)));
 const contentTypes:Record<string,string>={'.html':'text/html','.js':'text/javascript','.json':'application/json','.css':'text/css','.svg':'image/svg+xml','.woff2':'font/woff2'};
 async function command(page:import('@playwright/test').Page,id:string){
  const target=page.locator('#'+id);const menu=await target.evaluate(element=>element.closest('[role="menu"]')?.getAttribute('aria-labelledby'));

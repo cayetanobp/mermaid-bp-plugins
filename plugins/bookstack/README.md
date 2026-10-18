@@ -11,7 +11,7 @@ Este plugin aporta una vista de comprobación y un visor para publicar diagramas
 
 ## Instalar en Mermaid BP
 
-Desde la raíz de este repositorio, ejecuta `npm install` y `npm run build`. Copia la carpeta completa `dist/plugins/bookstack/` a `plugins/bookstack/` dentro de la distribución web ya compilada de Mermaid BP. Por ejemplo, en una distribución cuyo directorio publicado es `dist/`, el destino es `dist/plugins/bookstack/`. No es necesario reconstruir el editor.
+Desde la raíz de este repositorio, ejecuta `npm ci` y `npm run build`. Copia la carpeta completa `dist/plugins/bookstack/` a `plugins/bookstack/` dentro de la distribución web ya compilada de Mermaid BP. Por ejemplo, en una distribución cuyo directorio publicado es `dist/`, el destino es `dist/plugins/bookstack/`. No es necesario reconstruir el editor.
 
 Recarga Mermaid BP y activa **BookStack** en **Extensiones**. La vista previa sirve para comprobar el diagrama antes de publicarlo. Para retirar el plugin, elimina la carpeta `plugins/bookstack/` de la distribución y recarga.
 
@@ -23,7 +23,7 @@ La compilación produce `dist/plugins/bookstack/bookstack-header.html` y tambié
 
 El encabezado identifica exclusivamente bloques Mermaid que contengan el comentario `%% mermaid-bp:manual-layout` y cuyo tipo de diagrama sea `flowchart` o `graph`. Solo esos bloques se procesan con la disposición manual de Mermaid BP. Los demás bloques Mermaid quedan al visor habitual de BookStack, sin intervención del encabezado.
 
-El archivo generado contiene un `<script type="module">` inline y carga Mermaid 11.17.2 desde `https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.esm.min.mjs`. La CSP del sitio debe autorizar ese script inline (por ejemplo, con el nonce o hash que admita la política de BookStack), los módulos que este importa y las conexiones necesarias a `cdn.jsdelivr.net`. Si la política de seguridad no permite ese CDN, puedes alojar esa versión en un origen propio y modificar la URL de jsDelivr en `bookstack/build.mjs` antes de compilar el encabezado.
+El archivo generado contiene un `<script type="module">` inline y carga Mermaid 11.17.2 desde `https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.esm.min.mjs`. La CSP del sitio debe autorizar ese script inline (por ejemplo, con el nonce o hash que admita la política de BookStack), los módulos que este importa y las conexiones necesarias a `cdn.jsdelivr.net`. Si la política de seguridad no permite ese CDN, puedes alojar esa versión en un origen propio y modificar la URL de jsDelivr en `plugins/bookstack/build.mjs` antes de compilar el encabezado.
 
 ## Límites
 
