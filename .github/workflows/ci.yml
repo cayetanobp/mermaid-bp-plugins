@@ -46,4 +46,4 @@ jobs:
       - name: Verify BookStack against the public API v1 in a real core distribution
         env:
           MERMAID_BP_CORE_DIST: ${{ steps.core.outputs.distribution-path }}
-        run: npx playwright test --config bookstack/playwright.core.config.ts
+        run: npx playwright test --config plugins/bookstack/playwright.core.config.ts

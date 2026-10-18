@@ -1,6 +1,9 @@
 import {test,expect} from '@playwright/test';
 import {readFile} from 'node:fs/promises';
-import {join} from 'node:path';
+import {join,resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+const repository=resolve(fileURLToPath(new URL('../../../',import.meta.url)));
 
 test('the bundled preview renders a standalone sample',async({page})=>{
   await page.goto('/plugins/bookstack/bookstack.html');
@@ -9,11 +12,11 @@ test('the bundled preview renders a standalone sample',async({page})=>{
 });
 
 test('the BookStack header only claims tagged blocks and applies saved positions',async({page})=>{
-  const header=await readFile('dist/plugins/bookstack/bookstack-header.html','utf8');
+  const header=await readFile(join(repository,'dist/plugins/bookstack/bookstack-header.html'),'utf8');
   await page.route('https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/**',async route=>{
     const relative=new URL(route.request().url()).pathname.split('/dist/')[1];
     if(!relative||relative.split('/').includes('..'))return route.abort();
-    await route.fulfill({contentType:'text/javascript',headers:{'access-control-allow-origin':'*'},body:await readFile(join(process.cwd(),'node_modules/mermaid/dist',relative))});
+    await route.fulfill({contentType:'text/javascript',headers:{'access-control-allow-origin':'*'},body:await readFile(join(repository,'node_modules/mermaid/dist',relative))});
   });
   const source='%% mermaid-bp:manual-layout\nflowchart LR\nA[Origen] --> B[Destino]\n%% graph:positions {"A":{"x":-50,"y":40},"B":{"x":280,"y":170}}';
   const escape=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
@@ -28,14 +31,14 @@ test('the BookStack header only claims tagged blocks and applies saved positions
 });
 
 test('the generated header stays below the install limit and works with strict-dynamic CSP',async({page})=>{
-  const header=await readFile('dist/plugins/bookstack/bookstack-header.html','utf8');
+  const header=await readFile(join(repository,'dist/plugins/bookstack/bookstack-header.html'),'utf8');
   expect(Buffer.byteLength(header)).toBeLessThan(60_000);
   expect(header.trim()).toMatch(/<\/script>$/);
   const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
   await page.route('https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/**',async route=>{
     const relative=new URL(route.request().url()).pathname.split('/dist/')[1];
     if(!relative||relative.split('/').includes('..'))return route.abort();
-    await route.fulfill({contentType:'text/javascript',headers:{'access-control-allow-origin':'*'},body:await readFile(join(process.cwd(),'node_modules/mermaid/dist',relative))});
+    await route.fulfill({contentType:'text/javascript',headers:{'access-control-allow-origin':'*'},body:await readFile(join(repository,'node_modules/mermaid/dist',relative))});
   });
   const source='%% mermaid-bp:manual-layout\nflowchart TD\nsubgraph G[Grupo]\nA[Origen] -->|Continuar| B[Destino]\nend\nB -->|Repetir| B\n%% graph:positions {"A":{"x":100,"y":100},"B":{"x":380,"y":260}}\n%% graph:groups {"G":{"x":20,"y":20,"width":500,"height":340}}\n%% graph:connections {"B>B#0":{"bendFrom":{"x":-130,"y":80},"bendTo":{"x":140,"y":80}}}';
   const escape=(text:string)=>text.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');

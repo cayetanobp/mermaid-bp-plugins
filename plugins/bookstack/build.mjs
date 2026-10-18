@@ -2,10 +2,10 @@ import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {mkdir, readFile, writeFile, copyFile} from 'node:fs/promises';
 import {build, transformWithEsbuild} from 'vite';
-import {writeThirdPartyNotices} from '../scripts/write-third-party-notices.mjs';
+import {writeThirdPartyNotices} from '../../scripts/write-third-party-notices.mjs';
 
 const root = dirname(fileURLToPath(import.meta.url));
-const repositoryRoot = resolve(root,'..');
+const repositoryRoot = resolve(root,'../..');
 const out = resolve(repositoryRoot,process.env.MERMAID_BP_OUT_DIR || 'dist');
 const packageDir = resolve(out, 'plugins/bookstack');
 await mkdir(packageDir, {recursive:true});

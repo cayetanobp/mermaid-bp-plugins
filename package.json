@@ -2,17 +2,25 @@
   "name": "mermaid-bp-plugins",
   "private": true,
   "type": "module",
-  "workspaces": ["bookstack"],
+  "workspaces": [
+    "plugins/*"
+  ],
   "scripts": {
-    "build": "npm run build --workspace @mermaid-bp/bookstack",
-    "test": "node --test bookstack/tests/package.test.mjs",
-    "test:browser": "playwright test --config bookstack/playwright.config.ts"
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces",
+    "test:browser": "npm run test:browser --workspaces --if-present"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.0",
     "@types/node": "^22.0.0",
     "typescript": "~5.8.3",
-    "vite": "^6.3.0"
+    "vite": "^6.3.0",
+    "mermaid": "11.17.2"
   },
-  "engines": {"node": ">=22.18.0"}
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "overrides": {
+    "katex": "0.18.2"
+  }
 }

@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 
 const root = new URL('../', import.meta.url);
+const repository = new URL('../../../', import.meta.url);
 
 test('BookStack sources and package build are owned by this repository', async () => {
   for (const file of ['plugin.json', 'bookstack.html', 'viewer.ts', 'preview.ts', 'build.mjs', 'src/render.ts', 'src/flow.ts']) {
@@ -26,7 +27,7 @@ test('the installable package has its own dependency and legal notices', async (
 });
 
 test('the built plugin is a self-contained API v1 package', async () => {
-  const output = new URL('../../dist/plugins/bookstack/', import.meta.url);
+  const output = new URL('../../../dist/plugins/bookstack/', import.meta.url);
   const manifest = JSON.parse(await readFile(new URL('plugin.json', output), 'utf8'));
   assert.equal(manifest.id, 'bookstack');
   assert.equal(manifest.apiVersion, 1);
@@ -38,14 +39,14 @@ test('the built plugin is a self-contained API v1 package', async () => {
   }
 
   const result = spawnSync(process.execPath, [
-    resolve('scripts/verify-plugin-package.mjs'),
+    fileURLToPath(new URL('scripts/verify-plugin-package.mjs', repository)),
     fileURLToPath(output),
   ], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr || 'the built package should pass verification');
 });
 
 test('package verification rejects private core imports in any built JavaScript output', async () => {
-  const packageDirectory = new URL('../../dist/plugins/bookstack/', import.meta.url);
+  const packageDirectory = new URL('../../../dist/plugins/bookstack/', import.meta.url);
   const fixture = await mkdtemp(join(tmpdir(), 'mermaid-bookstack-package-'));
   try {
     const fixturePackage = join(fixture, 'bookstack');
@@ -53,7 +54,7 @@ test('package verification rejects private core imports in any built JavaScript 
     await appendFile(join(fixturePackage, 'bookstack-viewer.js'), '\nimport {privateThing} from "../../src/private-module.js";\n');
 
     const result = spawnSync(process.execPath, [
-      resolve('scripts/verify-plugin-package.mjs'),
+      fileURLToPath(new URL('scripts/verify-plugin-package.mjs', repository)),
       fixturePackage,
     ], { encoding: 'utf8' });
 
@@ -65,7 +66,7 @@ test('package verification rejects private core imports in any built JavaScript 
 });
 
 test('package verification rejects a valid manifest with an incompatible API version before installation', async () => {
-  const packageDirectory = new URL('../../dist/plugins/bookstack/', import.meta.url);
+  const packageDirectory = new URL('../../../dist/plugins/bookstack/', import.meta.url);
   const fixture = await mkdtemp(join(tmpdir(), 'mermaid-bookstack-package-'));
   try {
     const fixturePackage = join(fixture, 'bookstack');
@@ -76,7 +77,7 @@ test('package verification rejects a valid manifest with an incompatible API ver
     await writeFile(manifestPath, JSON.stringify(manifest));
 
     const result = spawnSync(process.execPath, [
-      resolve('scripts/verify-plugin-package.mjs'),
+      fileURLToPath(new URL('scripts/verify-plugin-package.mjs', repository)),
       fixturePackage,
     ], { encoding: 'utf8' });
 

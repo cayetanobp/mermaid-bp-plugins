@@ -1,9 +1,13 @@
 import hashlib
 import json
+import sys
 import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPOSITORY_ROOT))
 
 from scripts.package_bookstack_release import package_release
 
