@@ -21,3 +21,5 @@ Las PR de integraciones se dirigen a `cayetanobp/mermaid-bp-plugins`; las de fun
 ## Calidad y licencias
 
 Actualiza la documentación del plugin junto con cambios visibles en instalación, uso o compatibilidad. No incorpores módulos privados del núcleo en un paquete de plugin. Al redistribuir, conserva los avisos de licencia y documenta las dependencias o recursos de terceros conforme a `NOTICE.md` y los avisos del paquete.
+
+La raíz declara también Mermaid como dependencia de desarrollo para que npm aplique el override de seguridad de KaTeX al atravesar los workspaces. Sin esa resolución directa, npm puede conservar la versión vulnerable aunque exista el override ([incidencia upstream](https://github.com/npm/cli/issues/9659)). Al actualizar Mermaid o KaTeX, comprueba la versión realmente instalada y `npm audit`, además del build, las pruebas y los avisos de terceros del plugin.
