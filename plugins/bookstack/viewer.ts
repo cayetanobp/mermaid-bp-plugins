@@ -82,6 +82,9 @@ export async function renderMermaidBlocks(scope: ParentNode = document, onlyManu
   return result;
 }
 export function installBookStackViewer(): void {
+  // Esta instancia solo procesa bloques manuales. No debe ejecutar el barrido
+  // global de Mermaid al dispararse window.load, aunque se restaure su config.
+  mermaid.startOnLoad = false;
   const run = () => { void renderMermaidBlocks(document, true); };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, { once: true });
   else run();
